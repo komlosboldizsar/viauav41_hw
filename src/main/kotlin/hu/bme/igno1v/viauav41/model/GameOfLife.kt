@@ -62,6 +62,8 @@ class GameOfLife(val width: Int, val height: Int) {
     }
 
     fun setCell(x: Int, y: Int, value: Boolean) {
+        if (running)
+            return
         if ((x < 0) || (x >= width))
             throw IllegalArgumentException()
         if ((y < 0) || (y >= height))
