@@ -78,7 +78,7 @@ class GameOfLife(val width: Int, val height: Int) {
     }
 
     fun getRule(index: Int): RuleType {
-        if ((index < 0) || (index >= 8))
+        if ((index < 0) || (index > 8))
             throw IllegalArgumentException()
         return this.rules[index]
     }
