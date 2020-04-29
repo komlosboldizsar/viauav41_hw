@@ -20,12 +20,12 @@ class GameOfLife(val width: Int, val height: Int) {
     init {
         for (y in 0 until height)
             this.table_ += BooleanArray(width)
-        this.rules = Array(8) { i ->
+        this.rules = Array(9) { i ->
             when (i) {
                 in 0..1 -> RuleType.DIE // underpopulation
                 2 -> RuleType.KEEP
                 3 -> RuleType.BORN // reproduction
-                in 3 until 8 -> RuleType.DIE // overpopulation
+                in 3..8 -> RuleType.DIE // overpopulation
                 else -> RuleType.KEEP
             }
         }
@@ -84,7 +84,7 @@ class GameOfLife(val width: Int, val height: Int) {
     }
 
     fun setRule(index: Int, rule: RuleType) {
-        if ((index < 0) || (index >= 8))
+        if ((index < 0) || (index > 8))
             throw IllegalArgumentException()
         if (this.rules[index] == rule)
             return
