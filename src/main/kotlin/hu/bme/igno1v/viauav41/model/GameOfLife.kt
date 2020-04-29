@@ -1,3 +1,5 @@
+package hu.bme.igno1v.viauav41.model
+
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch

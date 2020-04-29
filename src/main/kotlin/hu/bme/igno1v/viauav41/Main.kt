@@ -1,3 +1,7 @@
+package hu.bme.igno1v.viauav41
+
+import hu.bme.igno1v.viauav41.model.GameOfLife
+
 fun main() {
     val table = GameOfLife(5, 5)
     table.setCell(2, 1, true)
