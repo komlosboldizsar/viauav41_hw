@@ -21,6 +21,12 @@ class MyController: Controller(), GameOfLife.Observer {
     val wallBehaviorProperty: Property<GameOfLife.WallBehavior> = SimpleObjectProperty(game.wallBehavior)
 
     init {
+        gameRunningProperty.addListener { _, _, newValue ->
+            if (newValue)
+                game.start()
+            else
+                game.stop()
+        }
         animationIntervalProperty.addListener { _, _, newValue ->
             print(newValue)
             game.animationInterval = newValue.toDouble()
@@ -64,14 +70,6 @@ class MyController: Controller(), GameOfLife.Observer {
 
     override fun onWallBehaviorChanged(game: GameOfLife, behavior: GameOfLife.WallBehavior) {
         // TODO
-    }
-
-    fun startGame() {
-        game.start()
-    }
-
-    fun stopGame() {
-        game.stop()
     }
 
     fun invertCell(x: Int, y: Int) {

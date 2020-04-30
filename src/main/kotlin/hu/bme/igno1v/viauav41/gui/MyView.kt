@@ -62,13 +62,13 @@ class MyView : View("Conway's Game Of Life EXTRA") {
                     button("Start") {
                         enableWhen(myController.gameRunningProperty.not())
                         action {
-                            myController.startGame()
+                            myController.gameRunningProperty.set(true)
                         }
                     }
                     button("Stop") {
                         enableWhen(myController.gameRunningProperty)
                         action {
-                            myController.stopGame()
+                            myController.gameRunningProperty.set(false)
                         }
                     }
                     label("Speed:")
