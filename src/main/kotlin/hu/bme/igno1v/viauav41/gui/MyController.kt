@@ -72,7 +72,7 @@ class MyController: Controller(), GameOfLife.Observer {
     }
 
     override fun onWallBehaviorChanged(game: GameOfLife, behavior: GameOfLife.WallBehavior) {
-        // TODO
+        wallBehaviorProperty.value = behavior
     }
 
     fun invertCell(x: Int, y: Int) {
