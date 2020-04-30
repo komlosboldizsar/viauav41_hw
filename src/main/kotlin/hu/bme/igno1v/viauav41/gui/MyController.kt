@@ -3,7 +3,6 @@ package hu.bme.igno1v.viauav41.gui
 import hu.bme.igno1v.viauav41.model.GameOfLife
 import javafx.beans.property.*
 import tornadofx.Controller
-import tornadofx.tag
 
 class MyController: Controller(), GameOfLife.Observer {
 
@@ -13,6 +12,7 @@ class MyController: Controller(), GameOfLife.Observer {
     val GAME_HEIGHT = 30
     private val game = GameOfLife(GAME_WIDTH, GAME_HEIGHT)
 
+    // region Beans properties
     val gameRunningProperty: BooleanProperty = SimpleBooleanProperty(game.running)
     val animationIntervalProperty: DoubleProperty = SimpleDoubleProperty(game.animationInterval)
     val selectedRuleProperties: Array<Property<GameOfLife.RuleType>> = Array(9) {
@@ -20,7 +20,7 @@ class MyController: Controller(), GameOfLife.Observer {
     }
     val wallBehaviorProperty: Property<GameOfLife.WallBehavior> = SimpleObjectProperty(game.wallBehavior)
 
-    init {
+    private fun addPropertyListeners() {
         gameRunningProperty.addListener { _, _, newValue ->
             if (newValue)
                 game.start()
@@ -40,12 +40,15 @@ class MyController: Controller(), GameOfLife.Observer {
             game.wallBehavior = newValue
         }
     }
+    // endregion
 
     init {
+        addPropertyListeners()
         game.subscribe(this)
         game.start()
     }
 
+    // region Observer
     override fun onTableChanged(game: GameOfLife) {
         for (y in 0 until game.height)
             for (x in 0 until game.width)
@@ -75,9 +78,6 @@ class MyController: Controller(), GameOfLife.Observer {
     fun invertCell(x: Int, y: Int) {
         game.setCell(x, y, !game.getCell(x, y))
     }
-
-    fun setRule(index: Int, rule: GameOfLife.RuleType) {
-        game.setRule(index, rule)
-    }
+    // endregion
 
 }
