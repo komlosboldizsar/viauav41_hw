@@ -60,8 +60,8 @@ class GameOfLife(val width: Int, val height: Int) {
     fun getCell(x: Int, y: Int): Boolean {
         if ((x < 0) || (x >= width) || (y < 0) || (y >= height))
             when (wallBehavior) {
-                WallBehavior.DEAD -> false
-                WallBehavior.LIVING -> true
+                WallBehavior.DEAD -> return false
+                WallBehavior.LIVING -> return true
                 WallBehavior.MIRROR_NEIGHBORS -> {
                     var xV = x
                     var yV = y
@@ -73,7 +73,7 @@ class GameOfLife(val width: Int, val height: Int) {
                         yV = 0
                     if (y >= height)
                         yV = height - 1
-                    this.table[yV][xV]
+                    return this.table[yV][xV]
                 }
             }
         return this.table[y][x]
