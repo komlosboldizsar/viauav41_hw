@@ -10,14 +10,9 @@ import javafx.scene.shape.Rectangle
 import javafx.util.converter.NumberStringConverter
 import tornadofx.*
 
-class MyView : View("Conway's Game Of Life EXTRA"), GameOfLife.Observer {
-
-    private val GAME_WIDTH = 30
-    private val GAME_HEIGHT = 30
+class MyView : View("Conway's Game Of Life EXTRA") {
 
     private val myController: MyController by inject()
-
-    private val game = GameOfLife(GAME_WIDTH, GAME_HEIGHT)
 
     private val COLOR_BORDER = Color.BLACK
     private val COLOR_LIVING = Color.DARKBLUE
@@ -26,18 +21,11 @@ class MyView : View("Conway's Game Of Life EXTRA"), GameOfLife.Observer {
     private val CELL_SIZE = 23.0
 
     private var cells: Array<Array<Rectangle>> = arrayOf()
-    private var ruleMenus: Array<ListMenu> = arrayOf()
-
-    private val gameRunningProperty: BooleanProperty = SimpleBooleanProperty(game.running)
-    private val animationIntervalProperty: DoubleProperty = SimpleDoubleProperty(game.animationInterval)
-
-    init {
-        animationIntervalProperty.addListener { _, _, newValue ->
-            print(newValue)
-            game.animationInterval = newValue.toDouble()
+    private var ruleMenus_: Array<ListMenu> = arrayOf()
+    val ruleMenus: Array<ListMenu>
+        get() {
+            return ruleMenus_
         }
-    }
-
 
     override val root = hbox {
         spacing = 10.0
@@ -46,11 +34,11 @@ class MyView : View("Conway's Game Of Life EXTRA"), GameOfLife.Observer {
             paddingAll = 10.0
             rectangle(0, 0) {
                 fill = COLOR_BORDER
-                width = GAME_WIDTH * (BORDER_SIZE + CELL_SIZE) + BORDER_SIZE
-                height = GAME_HEIGHT * (BORDER_SIZE + CELL_SIZE) + BORDER_SIZE
+                width = myController.GAME_WIDTH * (BORDER_SIZE + CELL_SIZE) + BORDER_SIZE
+                height = myController.GAME_HEIGHT * (BORDER_SIZE + CELL_SIZE) + BORDER_SIZE
             }
-            for (y in 0 until GAME_HEIGHT) {
-                cells += Array(GAME_WIDTH) { x ->
+            for (y in 0 until myController.GAME_HEIGHT) {
+                cells += Array(myController.GAME_WIDTH) { x ->
                     rectangle (BORDER_SIZE + x * (BORDER_SIZE + CELL_SIZE), BORDER_SIZE + y * (BORDER_SIZE + CELL_SIZE)) {
                         fill = COLOR_DEAD
                         width = CELL_SIZE
@@ -67,7 +55,7 @@ class MyView : View("Conway's Game Of Life EXTRA"), GameOfLife.Observer {
                     return@setOnMouseClicked
                 val cellX = ((event.x - BORDER_SIZE) / (BORDER_SIZE + CELL_SIZE)).toInt()
                 val cellY = ((event.y - BORDER_SIZE) / (BORDER_SIZE + CELL_SIZE)).toInt()
-                game.setCell(cellX, cellY, !game.getCell(cellX, cellY))
+                myController.invertCell(cellX, cellY)
             }
         }
         vbox {
@@ -77,24 +65,24 @@ class MyView : View("Conway's Game Of Life EXTRA"), GameOfLife.Observer {
                 label("Animation")
                 hbox {
                     button("Start") {
-                        enableWhen(gameRunningProperty.not())
+                        enableWhen(myController.gameRunningProperty.not())
                         action {
-                            game.start()
+                            myController.startGame()
                         }
                     }
                     button("Stop") {
-                        enableWhen(gameRunningProperty)
+                        enableWhen(myController.gameRunningProperty)
                         action {
-                            game.stop()
+                            myController.stopGame()
                         }
                     }
                     label("Speed:")
                     textfield {
-                        text(animationIntervalProperty.asString().value)
+                        text(myController.animationIntervalProperty.asString().value)
                         filterInput { it.controlNewText.isFloat() }
-                        enableWhen(gameRunningProperty.not())
-                        print(animationIntervalProperty.value)
-                        textProperty().bindBidirectional(animationIntervalProperty, NumberStringConverter())
+                        enableWhen(myController.gameRunningProperty.not())
+                        print(myController.animationIntervalProperty.value)
+                        textProperty().bindBidirectional(myController.animationIntervalProperty, NumberStringConverter())
                     }
                     label("ms")
                 }
@@ -103,14 +91,14 @@ class MyView : View("Conway's Game Of Life EXTRA"), GameOfLife.Observer {
                     for (i in 0..8) {
                         hbox {
                             label("$i neighbors:")
-                            ruleMenus += listmenu {
+                            ruleMenus_ += listmenu {
                                 orientation = Orientation.HORIZONTAL
                                 GameOfLife.RuleType.values().forEach {
                                     item(it.toString(), null, it)
                                 }
                                 activeItemProperty.addListener { _, _, newValue ->
                                     if (newValue != null)
-                                        game.setRule(i, newValue.tag as GameOfLife.RuleType)
+                                        myController.setRule(i, newValue.tag as GameOfLife.RuleType)
                                 }
                             }
                         }
@@ -120,38 +108,8 @@ class MyView : View("Conway's Game Of Life EXTRA"), GameOfLife.Observer {
         }
     }
 
-    init {
-        game.subscribe(this)
-        game.start()
-    }
-
     fun updateCell(x: Int, y: Int, living: Boolean) {
         cells[y][x].fill = if (living) COLOR_LIVING else COLOR_DEAD
-    }
-
-    override fun onTableChanged(game: GameOfLife) {
-        for (y in 0 until game.height)
-            for (x in 0 until game.width)
-                updateCell(x, y, game.getCell(x, y))
-    }
-
-    override fun onCellChanged(game: GameOfLife, x: Int, y: Int, value: Boolean) {
-        updateCell(x, y, value)
-    }
-
-    override fun onRuleChanged(game: GameOfLife, index: Int, rule: GameOfLife.RuleType) {
-        ruleMenus[index].items.forEach {
-            if (it.tag == rule)
-                ruleMenus[index].activeItem = it
-        }
-    }
-
-    override fun onRunningChanged(game: GameOfLife, running: Boolean) {
-        gameRunningProperty.set(running)
-    }
-
-    override fun onAnimationIntervalChanged(game: GameOfLife, interval: Double) {
-        animationIntervalProperty.set(interval)
     }
 
 }
