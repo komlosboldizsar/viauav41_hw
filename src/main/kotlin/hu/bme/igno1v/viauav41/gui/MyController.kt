@@ -58,6 +58,10 @@ class MyController: Controller(), GameOfLife.Observer {
         animationIntervalProperty.set(interval)
     }
 
+    override fun onWallBehaviorChanged(game: GameOfLife, behavior: GameOfLife.WallBehavior) {
+        // TODO
+    }
+
     fun startGame() {
         game.start()
     }

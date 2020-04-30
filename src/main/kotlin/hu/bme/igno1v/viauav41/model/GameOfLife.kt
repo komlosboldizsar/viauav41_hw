@@ -17,6 +17,10 @@ class GameOfLife(val width: Int, val height: Int) {
 
     private var rules: Array<RuleType>
 
+    var wallBehavior: WallBehavior by Delegates.observable(WallBehavior.DEAD) { _, _, newValue ->
+        notifyObserversWallBehaviorChanged(newValue)
+    }
+
     init {
         for (y in 0 until height)
             this.table_ += BooleanArray(width)
@@ -54,10 +58,24 @@ class GameOfLife(val width: Int, val height: Int) {
     }
 
     fun getCell(x: Int, y: Int): Boolean {
-        if ((x < 0) || (x >= width))
-            return false
-        if ((y < 0) || (y >= height))
-            return false
+        if ((x < 0) || (x >= width) || (y < 0) || (y >= height))
+            when (wallBehavior) {
+                WallBehavior.DEAD -> false
+                WallBehavior.LIVING -> true
+                WallBehavior.MIRROR_NEIGHBORS -> {
+                    var xV = x
+                    var yV = y
+                    if (xV < 0)
+                        xV = 0
+                    if (xV >= width)
+                        xV = width - 1
+                    if (yV < 0)
+                        yV = 0
+                    if (y >= height)
+                        yV = height - 1
+                    this.table[yV][xV]
+                }
+            }
         return this.table[y][x]
     }
 
@@ -92,6 +110,12 @@ class GameOfLife(val width: Int, val height: Int) {
             return
         this.rules[index] = rule
         notifyObserversRuleChanged(index, rule)
+    }
+
+    enum class WallBehavior {
+        DEAD,
+        LIVING,
+        MIRROR_NEIGHBORS
     }
     // endregion
 
@@ -150,6 +174,7 @@ class GameOfLife(val width: Int, val height: Int) {
         fun onRuleChanged(game: GameOfLife, index: Int, rule: RuleType)
         fun onRunningChanged(game: GameOfLife, running: Boolean)
         fun onAnimationIntervalChanged(game: GameOfLife, interval: Double)
+        fun onWallBehaviorChanged(game: GameOfLife, behavior: WallBehavior)
     }
 
     val observers: MutableList<GameOfLife.Observer> = mutableListOf()
@@ -189,6 +214,12 @@ class GameOfLife(val width: Int, val height: Int) {
     fun notifyObserversAnimationIntervalChanged(interval: Double) {
         observers.forEach {
             it.onAnimationIntervalChanged(this, interval)
+        }
+    }
+
+    fun notifyObserversWallBehaviorChanged(behavior: WallBehavior) {
+        observers.forEach {
+            it.onWallBehaviorChanged(this, behavior)
         }
     }
     // endregion
