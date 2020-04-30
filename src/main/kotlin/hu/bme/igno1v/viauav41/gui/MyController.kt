@@ -18,6 +18,7 @@ class MyController: Controller(), GameOfLife.Observer {
     val selectedRuleProperties: Array<Property<GameOfLife.RuleType>> = Array(9) {
         SimpleObjectProperty(game.getRule(it))
     }
+    val wallBehaviorProperty: Property<GameOfLife.WallBehavior> = SimpleObjectProperty(game.wallBehavior)
 
     init {
         animationIntervalProperty.addListener { _, _, newValue ->
@@ -28,6 +29,9 @@ class MyController: Controller(), GameOfLife.Observer {
             property.addListener { _, _, newValue ->
                 game.setRule(index, newValue)
             }
+        }
+        wallBehaviorProperty.addListener { _, _, newValue ->
+            game.wallBehavior = newValue
         }
     }
 

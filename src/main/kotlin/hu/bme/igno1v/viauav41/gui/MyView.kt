@@ -107,6 +107,25 @@ class MyView : View("Conway's Game Of Life EXTRA") {
                         }
                     }
                 }
+                label("Wall behavior")
+                listmenu {
+                    orientation = Orientation.HORIZONTAL
+                    GameOfLife.WallBehavior.values().forEach {
+                        val currentItem = item(it.toString(), null, it)
+                        if (myController.wallBehaviorProperty.value == it)
+                            activeItem = currentItem
+                    }
+                    activeItemProperty.addListener { _, _, newValue ->
+                        if (newValue != null)
+                            myController.wallBehaviorProperty.value = newValue.tag as GameOfLife.WallBehavior
+                    }
+                    myController.wallBehaviorProperty.addListener { _, _, newValue ->
+                        items.forEach {
+                            if (it.tag == newValue)
+                                activeItem = it
+                        }
+                    }
+                }
             }
         }
     }
