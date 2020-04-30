@@ -100,8 +100,12 @@ class GameOfLife(val width: Int, val height: Int) {
         notifyObserversRunningChanged(newValue)
     }
 
-    var animationInterval: Float by Delegates.vetoable(1000.0f) { _, _, newValue ->
-        newValue > 0.0f
+    var animationInterval: Double by Delegates.observable(1000.0) { _, oldValue, newValue ->
+        if (newValue < 10.0) {
+            animationInterval = 10.0
+            return@observable
+        }
+        notifyObserversAnimationIntervalChanged(newValue)
     }
 
     private var animationTime = 0
@@ -139,13 +143,13 @@ class GameOfLife(val width: Int, val height: Int) {
     }
     // endregion
 
-
     // region Observer
     interface Observer {
         fun onTableChanged(game: GameOfLife)
         fun onCellChanged(game: GameOfLife, x: Int, y: Int, value: Boolean)
         fun onRuleChanged(game: GameOfLife, index: Int, rule: RuleType)
         fun onRunningChanged(game: GameOfLife, running: Boolean)
+        fun onAnimationIntervalChanged(game: GameOfLife, interval: Double)
     }
 
     val observers: MutableList<GameOfLife.Observer> = mutableListOf()
@@ -179,6 +183,12 @@ class GameOfLife(val width: Int, val height: Int) {
     fun notifyObserversRunningChanged(running: Boolean) {
         observers.forEach {
             it.onRunningChanged(this, running)
+        }
+    }
+
+    fun notifyObserversAnimationIntervalChanged(interval: Double) {
+        observers.forEach {
+            it.onAnimationIntervalChanged(this, interval)
         }
     }
     // endregion
