@@ -15,10 +15,19 @@ class MyController: Controller(), GameOfLife.Observer {
 
     val gameRunningProperty: BooleanProperty = SimpleBooleanProperty(game.running)
     val animationIntervalProperty: DoubleProperty = SimpleDoubleProperty(game.animationInterval)
+    val selectedRuleProperties: Array<Property<GameOfLife.RuleType>> = Array(9) {
+        SimpleObjectProperty(game.getRule(it))
+    }
+
     init {
         animationIntervalProperty.addListener { _, _, newValue ->
             print(newValue)
             game.animationInterval = newValue.toDouble()
+        }
+        selectedRuleProperties.forEachIndexed { index, property ->
+            property.addListener { _, _, newValue ->
+                game.setRule(index, newValue)
+            }
         }
     }
 
@@ -38,11 +47,7 @@ class MyController: Controller(), GameOfLife.Observer {
     }
 
     override fun onRuleChanged(game: GameOfLife, index: Int, rule: GameOfLife.RuleType) {
-        val menu = myView.ruleMenus[index]
-        menu.items.forEach {
-            if (it.tag == rule)
-                menu.activeItem = it
-        }
+        selectedRuleProperties[index].value = rule
     }
 
     override fun onRunningChanged(game: GameOfLife, running: Boolean) {

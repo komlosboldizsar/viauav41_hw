@@ -21,11 +21,6 @@ class MyView : View("Conway's Game Of Life EXTRA") {
     private val CELL_SIZE = 23.0
 
     private var cells: Array<Array<Rectangle>> = arrayOf()
-    private var ruleMenus_: Array<ListMenu> = arrayOf()
-    val ruleMenus: Array<ListMenu>
-        get() {
-            return ruleMenus_
-        }
 
     override val root = hbox {
         spacing = 10.0
@@ -91,14 +86,22 @@ class MyView : View("Conway's Game Of Life EXTRA") {
                     for (i in 0..8) {
                         hbox {
                             label("$i neighbors:")
-                            ruleMenus_ += listmenu {
+                            listmenu {
                                 orientation = Orientation.HORIZONTAL
                                 GameOfLife.RuleType.values().forEach {
-                                    item(it.toString(), null, it)
+                                    val currentItem = item(it.toString(), null, it)
+                                    if (myController.selectedRuleProperties[i].value == it)
+                                        activeItem = currentItem
                                 }
                                 activeItemProperty.addListener { _, _, newValue ->
                                     if (newValue != null)
-                                        myController.setRule(i, newValue.tag as GameOfLife.RuleType)
+                                        myController.selectedRuleProperties[i].value = newValue.tag as GameOfLife.RuleType
+                                }
+                                myController.selectedRuleProperties[i].addListener { _, _, newValue ->
+                                    items.forEach {
+                                        if (it.tag == newValue)
+                                            activeItem = it
+                                    }
                                 }
                             }
                         }
