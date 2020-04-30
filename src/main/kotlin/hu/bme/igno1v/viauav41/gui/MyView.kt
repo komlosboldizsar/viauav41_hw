@@ -1,13 +1,13 @@
 package hu.bme.igno1v.viauav41.gui
 
 import hu.bme.igno1v.viauav41.model.GameOfLife
+import javafx.beans.property.*
 import javafx.geometry.Orientation
 import javafx.geometry.Pos
-import javafx.scene.control.Button
-import javafx.scene.control.TextField
 import javafx.scene.input.MouseButton
 import javafx.scene.paint.Color
 import javafx.scene.shape.Rectangle
+import javafx.util.converter.NumberStringConverter
 import tornadofx.*
 
 class MyView : View("Conway's Game Of Life EXTRA"), GameOfLife.Observer {
@@ -16,6 +16,7 @@ class MyView : View("Conway's Game Of Life EXTRA"), GameOfLife.Observer {
     private val GAME_HEIGHT = 30
 
     private val myController: MyController by inject()
+
     private val game = GameOfLife(GAME_WIDTH, GAME_HEIGHT)
 
     private val COLOR_BORDER = Color.BLACK
@@ -25,11 +26,18 @@ class MyView : View("Conway's Game Of Life EXTRA"), GameOfLife.Observer {
     private val CELL_SIZE = 23.0
 
     private var cells: Array<Array<Rectangle>> = arrayOf()
-    private lateinit var buttonStart: Button
-    private lateinit var buttonStop: Button
-    private lateinit var animationIntervalTextField: TextField
     private var ruleMenus: Array<ListMenu> = arrayOf()
-    private var ruleMenuItems: Array<Array<ListMenuItem>> = arrayOf()
+
+    private val gameRunningProperty: BooleanProperty = SimpleBooleanProperty(game.running)
+    private val animationIntervalProperty: DoubleProperty = SimpleDoubleProperty(game.animationInterval)
+
+    init {
+        animationIntervalProperty.addListener { _, _, newValue ->
+            print(newValue)
+            game.animationInterval = newValue.toDouble()
+        }
+    }
+
 
     override val root = hbox {
         spacing = 10.0
@@ -66,53 +74,45 @@ class MyView : View("Conway's Game Of Life EXTRA"), GameOfLife.Observer {
             spacing = 10.0
             paddingAll = 10.0
             vbox {
-                label {
-                    text = "Animation"
-                }
+                label("Animation")
                 hbox {
-                    buttonStart = button {
-                        text = "Start"
+                    button("Start") {
+                        enableWhen(gameRunningProperty.not())
                         action {
                             game.start()
                         }
                     }
-                    buttonStop = button {
-                        text = "Stop"
-                        isDisable = true
+                    button("Stop") {
+                        enableWhen(gameRunningProperty)
                         action {
                             game.stop()
                         }
                     }
                     label("Speed:")
-                    animationIntervalTextField = textfield {
-                        text = game.animationInterval.toString()
+                    textfield {
+                        text(animationIntervalProperty.asString().value)
                         filterInput { it.controlNewText.isFloat() }
-                        textProperty().addListener { _, _, newValue ->
-                            game.animationInterval = newValue.toFloat()
-                        }
+                        enableWhen(gameRunningProperty.not())
+                        print(animationIntervalProperty.value)
+                        textProperty().bindBidirectional(animationIntervalProperty, NumberStringConverter())
                     }
+                    label("ms")
                 }
-                label {
-                    text = "Rules"
-                }
+                label("Rules")
                 vbox {
                     for (i in 0..8) {
                         hbox {
                             label("$i neighbors:")
-                            var menu = listmenu {
+                            ruleMenus += listmenu {
                                 orientation = Orientation.HORIZONTAL
-                                var items: Array<ListMenuItem> = arrayOf()
-                                items += item("Born", null, GameOfLife.RuleType.BORN)
-                                items += item("Keep", null, GameOfLife.RuleType.KEEP)
-                                items += item("Invert", null, GameOfLife.RuleType.INVERT)
-                                items += item("Die", null, GameOfLife.RuleType.DIE)
-                                ruleMenuItems += items
-                                activeItem = items[game.getRule(i).ordinal]
+                                GameOfLife.RuleType.values().forEach {
+                                    item(it.toString(), null, it)
+                                }
+                                activeItemProperty.addListener { _, _, newValue ->
+                                    if (newValue != null)
+                                        game.setRule(i, newValue.tag as GameOfLife.RuleType)
+                                }
                             }
-                            menu.activeItemProperty.addListener { observable, oldValue, newValue ->
-                                game.setRule(i, newValue?.tag as GameOfLife.RuleType)
-                            }
-                            ruleMenus += menu
                         }
                     }
                 }
@@ -140,13 +140,18 @@ class MyView : View("Conway's Game Of Life EXTRA"), GameOfLife.Observer {
     }
 
     override fun onRuleChanged(game: GameOfLife, index: Int, rule: GameOfLife.RuleType) {
-        ruleMenus[index].activeItem = ruleMenuItems[index][rule.ordinal]
+        ruleMenus[index].items.forEach {
+            if (it.tag == rule)
+                ruleMenus[index].activeItem = it
+        }
     }
 
     override fun onRunningChanged(game: GameOfLife, running: Boolean) {
-        buttonStart.isDisable = running
-        buttonStop.isDisable = !running
-        animationIntervalTextField.isEditable = !running
+        gameRunningProperty.set(running)
+    }
+
+    override fun onAnimationIntervalChanged(game: GameOfLife, interval: Double) {
+        animationIntervalProperty.set(interval)
     }
 
 }
